@@ -1,0 +1,24 @@
+EdricHugo_00000077134
+
+1. MVVM (Model-View-ViewModel) adalah pola arsitektur yang penting karena memungkinkan pemisahan antara UI (View) dan logika bisnis. Pemisahan ini membuat kode lebih mudah untuk diuji, menambahkan fitur baru, dan memudahkan desain ulang UI atau pembaruan logika bisnis tanpa memengaruhi komponen lain. Pola ini sangat berguna saat membuat aplikasi besar yang menggunakan banyak data dan tampilan.
+
+representasi file:
+- Model: Merepresentasikan lapisan data. Ini diwakili oleh file-file seperti Movie.kt (Entitas Data), MovieService.kt (Layanan API), MovieDao.kt (Akses Database), dan MovieDatabase.kt (Database Lokal).
+- View: Adalah UI yang menampilkan data. Ini diwakili oleh file MainActivity.kt dan layout activity_main.xml.
+- ViewModel: Bertugas mengambil data dari Model dan menyediakannya ke View. Ini diwakili oleh file MovieViewModel.kt.
+
+2. Data Binding lebih efisien daripada menggunakan metode normal (seperti memanipulasi View secara langsung menggunakan findViewById) karena beberapa alasan. Data Binding memungkinkan View Model Anda untuk berkomunikasi secara langsung dengan Views tanpa perlu menggunakan findViewById atau sejenisnya. Ini mengurangi kode boilerplate di Activity atau Fragment. Selain itu, Data Binding memungkinkan pembaruan UI yang otomatis dan efisien. Dengan mengikat data yang dapat diamati (seperti LiveData atau StateFlow) langsung ke elemen View di XML (contohnya app:list="@{viewModel.popularMovies}"), setiap perubahan pada data di ViewModel akan secara otomatis dan langsung merefleksikan perubahan tersebut pada UI tanpa perlu memanggil metode pembaruan View secara manual.
+
+3. Singleton Pattern diterapkan pada deklarasi MovieDatabase. Pola ini sangat penting karena memastikan bahwa hanya ada satu instance tunggal dari database di seluruh thread aplikasi. Hal ini krusial karena membuat instance database baru adalah operasi yang mahal (expensive). Dengan menggunakan Singleton, Anda memastikan validitas data dan mencegah Race Conditions. Penggunaan @Volatile pada instance memastikan bahwa nilai database selalu up-to-date dan langsung terlihat oleh thread lain, dan penggunaan synchronized() memastikan bahwa hanya satu thread yang dapat mengeksekusi blok kode pembuatan database pada satu waktu.
+
+4. Poin paling penting dari pola ini adalah:
+- Akses Offline (Caching): Pola ini memungkinkan pengguna untuk mengakses aplikasi bahkan ketika tidak ada koneksi di area tersebut, karena data telah di-cache di database lokal.
+- Logika Pengambilan Data Terpusat: Repository mengelola logika untuk memutuskan apakah data harus diambil dari Room (lokal) atau dari API (jika cache kosong atau perlu diperbarui), sehingga ViewModel tidak perlu mengkhawatirkan sumber data.
+
+5. Alternatif untuk WorkManager:
+- Pengambilan Data yang Dipicu Pengguna (User-initiated): Data dapat diambil saat pengguna membuka aplikasi (foreground) atau melakukan tindakan refresh (misalnya, swipe-to-refresh). 
+                                                          Dalam kasus ini, Anda dapat memanggil fungsi fetch dari ViewModel di Activity/Fragment.
+- Polling Berulang (Foreground-only): Anda dapat menggunakan Coroutines yang dijalankan dalam scope Activity/Fragment (LifecycleScope) untuk secara berulang memanggil API dengan interval waktu tertentu, selama aplikasi berada di foreground. 
+                                      Namun, metode ini boros sumber daya dan tidak berfungsi saat aplikasi ditutup.
+- Layanan Latar Belakang (Services): Sebelum WorkManager, tugas seperti ini mungkin ditangani oleh layanan Android seperti JobScheduler (untuk API 21+) atau AlarmManager. 
+                                     AlarmManager dapat menjadwalkan operasi pada waktu tertentu, tetapi umumnya WorkManager adalah API yang disarankan Google untuk tugas background karena lebih fleksibel dan menangani batasan daya secara otomatis.
